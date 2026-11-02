@@ -3,9 +3,9 @@
 모의 본인확인기관 서버 (Mock Identity Provider) — 실습 전용
 
 - 실제 본인확인·신원 검증을 하지 않습니다. 어떤 개인정보도 받거나 저장하지 않습니다.
-- 카카오뱅크 인증서 공개 API 가이드(https://auth.kakaobank.com)의 "흐름 구조"만 참고했습니다.
+- 공개된 인증서 API 가이드의 "흐름 구조"만 참고했습니다 (docs/08-public-guide-reference.md).
     접근토큰 발급 → 인증 요청(composite_key, 만료시각, 표준창 URL) → 결과 요청(polling) → 결과코드
-  결과코드는 카카오뱅크 코드(AC....)와 겹치지 않도록 MV(Mock Verification) 접두어를 씁니다.
+  결과코드는 실제 기관 코드와 겹치지 않도록 MV(Mock Verification) 접두어를 씁니다.
 - 외부 의존성 없이 Python 표준 라이브러리만 사용합니다.
 
 실행:  python3 lab/mock-identity-provider/server.py
@@ -22,7 +22,7 @@
   결과 응답마다 아래 서명 원문을 SHA256withRSA로 서명해 signed_data(Base64)와 signer_cert(Base64 DER)를 붙인다.
     MVSIG1|{corp_id}|{trx_key}|{client_request_id}|{response_code}|{status}|{completed_dttm}
   이용기관 서버는 Lab Root CA로 인증서 체인·유효기간·용도를 검증하고 서명을 확인한 뒤에만 결과를 반영한다.
-  (카카오뱅크 공개 가이드의 signed_data(PKCS#7) 개념을 단순화한 학습용 구현)
+  (공개 가이드의 signed_data(PKCS#7) 개념을 단순화한 학습용 구현)
 """
 import html
 import json
@@ -51,7 +51,7 @@ SIGN_ALG = "SHA256withRSA"
 
 DTTM = "%Y%m%d%H%M%S"
 
-# ── 결과코드 (카카오뱅크 공개 오류코드 표의 '구조'를 참고한 모의 코드) ─────────────
+# ── 결과코드 (공개 가이드 오류코드 표의 '구조'를 참고한 모의 코드) ─────────────
 CODES = {
     "MV0000": (200, "정상처리 완료"),
     "MV0100": (200, "인증 결과 대기중 (사용자 인증 미진행)"),

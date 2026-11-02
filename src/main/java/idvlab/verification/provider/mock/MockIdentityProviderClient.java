@@ -28,8 +28,8 @@ import java.util.Set;
 
 /**
  * 로컬 모의 본인확인기관(lab/mock-identity-provider) HTTP 클라이언트.
- * 흐름 구조는 카카오뱅크 인증서 공개 가이드를 참고했다: 접근토큰 발급 → 인증 요청 → 결과 요청(polling).
- * 실제 카카오뱅크 API를 호출하지 않는다.
+ * 흐름 구조는 공개된 인증서 API 가이드를 참고했다: 접근토큰 발급 → 인증 요청 → 결과 요청(polling).
+ * 실제 인증기관 API를 호출하지 않는다.
  */
 @Slf4j
 @Component

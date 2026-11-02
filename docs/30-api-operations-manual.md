@@ -156,7 +156,7 @@ PGPASSWORD=idvlab psql -h localhost -p 5434 -U idvlab -d idvlab -f lab/ops/metri
 ### F. 오래 남은 PENDING (M5 > 0)
 
 - 사용자가 다시 조회하지 않아서 생긴 경우라면 정상입니다. 다음 조회나 요청 때 자동으로 확정됩니다.
-- 운영 개선 아이디어로, 만료된 PENDING을 주기적으로 정리하는 스케줄러를 기획했지만 **이번에는 구현하지 않았습니다**([12-decision-log.md](12-decision-log.md) ADR-07).
+- 운영 개선 아이디어로, 만료된 PENDING을 주기적으로 정리하는 스케줄러를 기획했지만 **이번에는 구현하지 않았습니다**([15-decision-log.md](15-decision-log.md) ADR-07).
 
 ## 5. 정기 작업
 
