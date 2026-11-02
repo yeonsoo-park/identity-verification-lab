@@ -1,0 +1,11 @@
+# 테스트 프로필: 로컬 테스트 DB (CI에서는 환경변수 SPRING_DATASOURCE_URL로 덮어씀)
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5434/idvlab_test
+    username: idvlab
+    password: idvlab
+
+# 테스트용 Root CA는 Gradle generateTestPki 태스크가 build/pki-test에 생성
+lab:
+  mock-identity-provider:
+    trust-anchor: file:build/pki-test/lab-root-ca.crt

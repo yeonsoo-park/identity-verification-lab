@@ -1,0 +1,14 @@
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+.idea/
+*.iml
+out/
+.vscode/
+.DS_Store
+__pycache__/
+*.pyc
+
+# 로컬에서 생성하는 실습용 PKI 키 (절대 커밋하지 않음)
+lab/pki/out/
+*.key

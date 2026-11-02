@@ -1,0 +1,45 @@
+# ============================================================================
+# 실습 전용 설정: 로컬 PostgreSQL과 로컬 모의 본인확인기관만 사용합니다.
+#  - 아래 secret 값은 로컬 실습용 더미입니다. 운영 자격증명을 넣지 마세요.
+#  - LabEnvironmentGuard가 DB·모의 기관 주소가 localhost가 아니면 기동을 막습니다.
+#  - 환경변수로 덮어쓸 수 있습니다 (예: SPRING_DATASOURCE_URL, CI에서 사용)
+# ============================================================================
+spring:
+  application:
+    name: identity-verification-lab
+  datasource:
+    url: jdbc:postgresql://localhost:5434/idvlab
+    username: idvlab
+    password: idvlab
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+jwt:
+  secret: lab-only-dummy-jwt-secret-do-not-use-anywhere-else-0123456789
+  access-token-expiry: 1h
+
+lab:
+  test-users: lab-user-a, lab-user-b, lab-user-c
+  identity-verification:
+    attempt-ttl: 5m          # 실습용 가정: 인증 시도 유효시간
+    poll-interval: 2s        # 실습용 가정: 결과 조회 권장 간격
+    unconfirmed-grace: 10m   # 실습용 가정: 만료 후 외부 결과 미확인 시 만료 확정까지 유예
+    callback-url: http://localhost:8080/lab/identity-demo
+  mock-identity-provider:
+    base-url: http://localhost:18090
+    corp-id: IDV-LAB
+    credential: lab-mock-credential
+    connect-timeout: 2s      # 실습용 가정
+    response-timeout: 3s     # 실습용 가정
+    trust-anchor: file:lab/pki/out/lab-root-ca.crt   # 결과 서명 검증 기준 (lab/pki/generate-lab-pki.sh로 생성)
+    expected-signer-cn: Mock IdP Result Signing
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

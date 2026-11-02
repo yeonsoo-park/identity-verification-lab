@@ -1,0 +1,55 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PG_BIN: /usr/bin          # run-lab.sh가 쓰는 psql·pg_isready 위치
+      PGUSER: postgres          # DB·role 생성용 관리자 계정 (CI 전용)
+      PGPASSWORD: postgres
+      PSQL: /usr/bin/psql       # E2E가 DB 상태를 직접 확인할 때 사용
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 문서-코드 일치 점검
+        run: python3 lab/tools/check_docs.py
+
+      - name: JUnit (DB·Role 생성 → 테스트 PKI 생성 → 테스트)
+        run: ./lab/run-lab.sh --test
+
+      - name: E2E (모의 기관 + 서버 기동 → 실제 HTTP 52개 항목)
+        run: ./lab/run-lab.sh --e2e
+
+      - name: 실패 시 로그 업로드
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab-logs
+          path: |
+            build/lab-logs/
+            build/reports/tests/
