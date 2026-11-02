@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 /**
@@ -212,7 +213,9 @@ public class IdentityVerificationService {
         return IdentityVerificationResponse.of(v, memberService.findById(memberId), properties.pollInterval().toSeconds());
     }
 
+    // DB(TIMESTAMP(6))와 같은 마이크로초 단위로 자른다. Linux 시계는 나노초까지 주므로,
+    // 자르지 않으면 첫 응답과 이후 DB에서 읽은 값의 시각이 달라진다 (CI에서 발견)
     private LocalDateTime now() {
-        return LocalDateTime.now(clock);
+        return LocalDateTime.now(clock).truncatedTo(ChronoUnit.MICROS);
     }
 }

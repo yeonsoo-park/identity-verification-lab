@@ -6,6 +6,7 @@ import idvlab.verification.repository.IdentityVerificationRepository;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 // 인증 대기 중 탈퇴 → 진행 중 요청을 취소로 확정해, 이후 외부 성공이 와도 반영되지 않게 한다
 @Component
@@ -17,7 +18,7 @@ public class IdentityVerificationWithdrawalCleaner implements WithdrawalCleaner 
 
     @Override
     public void clean(Long memberId) {
-        int cancelled = identityVerificationRepository.cancelPendingByWithdrawal(memberId, LocalDateTime.now());
+        int cancelled = identityVerificationRepository.cancelPendingByWithdrawal(memberId, LocalDateTime.now().truncatedTo(ChronoUnit.MICROS));
         if (cancelled > 0) {
             auditLog.withdrawalCancelled(memberId, cancelled);
         }

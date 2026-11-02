@@ -40,15 +40,16 @@
 | 등록되지 않은 callback URL 거부 | E S8 (`MV9107`) |
 | 제휴사 포털 노출 | E S8 |
 | 문서와 코드 일치 | `python3 lab/tools/check_docs.py` |
+| 응답 시각과 저장 시각 일치 (취소 재호출 멱등) | I `timestampsMatchDatabasePrecision`, E S2 |
 
 ## 7.3 실제 실행 결과
 
 | 구분 | 결과 |
 |---|---|
-| `./gradlew test` | **34개 전부 통과** (단위 18, 통합 16) |
+| `./gradlew test` | **35개 전부 통과** (단위 18, 통합 17) |
 | `./lab/run-lab.sh --e2e` | **52/52 PASS** (S1~S8) |
 | `python3 lab/tools/check_docs.py` | 불일치 0건 |
-| CI (GitHub Actions) | 워크플로 포함 ([.github/workflows/ci.yml](../.github/workflows/ci.yml)). 결과는 push 후 Actions 탭에서 확인 |
+| CI (GitHub Actions) | 문서 점검 → JUnit → E2E ([.github/workflows/ci.yml](../.github/workflows/ci.yml)). 첫 실행에서 E2E 1건 실패(아래 7.5) → 수정 후 통과 |
 
 ## 7.4 범위 밖 / 미검증
 
@@ -66,4 +67,8 @@
   - 원인: 탈퇴 정리기의 벌크 UPDATE에 `@Modifying(clearAutomatically = true)`를 붙였습니다. 이 옵션이 영속성 컨텍스트를 비우면서, 탈퇴 트랜잭션이 잠가 둔 회원 엔티티가 분리됐습니다. 그래서 회원 상태 변경이 저장되지 않았습니다.
   - 발견: E2E의 "탈퇴 → 재로그인" 단계가 실패하면서 드러났습니다.
   - 조치: 옵션을 제거하고, 이유를 주석으로 남겼습니다(`IdentityVerificationRepository`).
+- **Linux에서만 드러난 시각 정밀도 버그 (CI가 발견)**
+  - 증상: 같은 요청을 두 번 취소하면 두 응답의 `endedAt`이 서로 달랐습니다. 멱등이어야 하는 응답이 달라진 것입니다.
+  - 원인: Linux 시계는 나노초까지 줍니다. 첫 응답은 메모리에 있던 나노초 값을 그대로 돌려줬고, 두 번째 응답은 DB(`TIMESTAMP(6)`, 마이크로초까지 저장)에서 읽은 값을 돌려줬습니다. macOS 시계는 마이크로초까지만 주기 때문에 로컬에서는 드러나지 않았습니다.
+  - 조치: 서버의 기준 시각을 마이크로초 단위로 잘랐습니다. 나노초 시계를 흉내 낸 회귀 테스트 `timestampsMatchDatabasePrecision`도 추가했습니다. 이 테스트는 수정 전에는 실패하고 수정 후에는 통과하는 것을 확인했습니다.
 - **테스트 환경 간섭:** 실습 실행에서 남은 상태가 테스트에 영향을 줬습니다. 테스트 DB를 분리하고, 매 테스트 전에 상태를 초기화하도록 했습니다.

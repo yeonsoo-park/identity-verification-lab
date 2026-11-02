@@ -101,6 +101,7 @@ class IdentityVerificationIntegrationTest {
     static class MutableClock extends Clock {
         private volatile Instant now = Instant.now();
         void advance(Duration d) { now = now.plus(d); }
+        void set(Instant instant) { now = instant; }
         void reset() { now = Instant.now(); }
         @Override public ZoneId getZone() { return ZoneId.systemDefault(); }
         @Override public Clock withZone(ZoneId zone) { return this; }
@@ -306,6 +307,18 @@ class IdentityVerificationIntegrationTest {
         assertThat(again.getResponse().getStatus()).isEqualTo(409);
         assertThat(json(again).get("code").asText()).isEqualTo("IDENTITY_ALREADY_VERIFIED");
         assertThat(me(t).get("identityVerificationStatus").asText()).isEqualTo("VERIFIED");
+    }
+
+    @Test
+    @DisplayName("시계가 나노초 단위여도 응답 시각과 저장된 시각이 같다 (취소 재호출 시 endedAt 동일)")
+    void timestampsMatchDatabasePrecision() throws Exception {
+        clock.set(Instant.now().plusNanos(123));   // Linux처럼 나노초가 있는 시계를 재현
+        String t = login("lab-user-a");
+        String id = start(t).at("/data/verificationId").asText();
+        JsonNode first = cancel(t, id).get("data");
+        JsonNode again = cancel(t, id).get("data");
+        assertThat(again.get("endedAt").asText()).isEqualTo(first.get("endedAt").asText());
+        assertThat(again.get("expiresAt").asText()).isEqualTo(first.get("expiresAt").asText());
     }
 
     @Test
